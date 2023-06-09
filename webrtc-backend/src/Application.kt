@@ -6,6 +6,9 @@ import io.ktor.routing.*
 import io.ktor.server.netty.EngineMain
 import io.ktor.websocket.*
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import java.lang.Thread.sleep
 import java.time.Duration
 import java.util.*
 
@@ -19,10 +22,21 @@ import java.util.*
  * https://github.com/artem-bagritsevich/WebRTCKtorSignalingServerExample
  */
 fun main(args: Array<String>): Unit = EngineMain.main(args)
+enum class MessageType {
+    STATE,
+    OFFER,
+    ANSWER,
+    ICE,
+    NAME
+}
 
 @Suppress("unused") // Referenced in application.conf
 @JvmOverloads
 fun Application.module(testing: Boolean = false) {
+    var receivedAnswer = false;
+    var answerSDP:String? = null;
+    val mutex = Mutex()
+
 
 
     install(WebSockets) {
@@ -39,9 +53,27 @@ fun Application.module(testing: Boolean = false) {
         }
 
         post("/"){
-            val headers = call.request.headers["Client-Name"]
+            val clientName = call.request.headers["Client-Name"]
             val bytes = call.receive<ByteArray>()
-            call.respond(String(bytes))
+            var hopperMessage = String(bytes)
+            hopperMessage = "OFFER $hopperMessage"
+            val uuid = clientName?.let { it1 -> SessionManager.findClient(it1) }
+            var response: String? = null;
+            if(uuid == null){
+                response = "{\"sucess\":false,\"message\":\"\"}"
+            }
+            else {
+                val session = SessionManager.clients[uuid]
+                session?.send(hopperMessage)
+                println("Waiting for answer")
+                while (!receivedAnswer) {
+                    println("Inside while")
+                    sleep(100z)
+                }
+                response = "{\"suceess\":true,\"message\":$answerSDP}"
+                print("\n recev answer")
+            }
+            call.respond(response)
     }
         webSocket("/rtc") {
             val sessionID = UUID.randomUUID()
@@ -53,7 +85,13 @@ fun Application.module(testing: Boolean = false) {
                 for (frame in incoming) {
                     when (frame) {
                         is Frame.Text -> {
+                            var message = frame.readText();
                             SessionManager.onMessage(sessionID, frame.readText())
+                                if (message.startsWith(MessageType.ANSWER.toString(), true)) {
+                                    println(message)
+                                    answerSDP = message.substringAfter(' ')
+                                    receivedAnswer = true
+                                }
                         }
 
                         else -> Unit
@@ -70,5 +108,6 @@ fun Application.module(testing: Boolean = false) {
             }
         }
     }
+
 }
 

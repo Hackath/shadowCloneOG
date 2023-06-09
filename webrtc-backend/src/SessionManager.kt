@@ -22,25 +22,17 @@ object SessionManager {
     private val sessionManagerScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val mutex = Mutex()
 
-    private val clients = mutableMapOf<UUID, DefaultWebSocketServerSession>()
-    private val client_database = mutableMapOf<String,UUID>()
+    public val clients = mutableMapOf<UUID, DefaultWebSocketServerSession>()
+    public val client_database = mutableMapOf<String,UUID>()
 
     private var sessionState: WebRTCSessionState = WebRTCSessionState.Impossible
 
     fun onSessionStarted(sessionId: UUID, session: DefaultWebSocketServerSession) {
         sessionManagerScope.launch {
             mutex.withLock {
-                /*if (clients.size > 1) {
-                    sessionManagerScope.launch(NonCancellable) {
-                        session.send(Frame.Close()) // only two peers are supported
-                    }
-                    return@launch
-                }*/
-
                 clients[sessionId] = session
                 session.send("Added as a client: $sessionId")
                 sessionState = WebRTCSessionState.Ready
-
                 notifyAboutStateUpdate()
             }
         }
@@ -51,14 +43,23 @@ object SessionManager {
             message.startsWith(MessageType.NAME.toString(),true) -> handleName(sessionId,message)
             message.startsWith(MessageType.STATE.toString(), true) -> handleState(sessionId)
             message.startsWith(MessageType.OFFER.toString(), true) -> handleOffer(sessionId, message)
-            message.startsWith(MessageType.ANSWER.toString(), true) -> handleAnswer(sessionId, message)
+            //message.startsWith(MessageType.ANSWER.toString(), true) -> handleAnswer(sessionId, message)
             message.startsWith(MessageType.ICE.toString(), true) -> handleIce(sessionId, message)
         }
     }
 
+    public fun findClient(name: String): UUID? {
+        if(client_database.containsKey(name))
+            if(clients.containsKey(client_database[name]))
+                return client_database[name]
+        return null
+    }
 
     private fun handleName(sessionId: UUID,message: String){
-        client_database[message] = sessionId;
+        client_database[message.substringAfter(' ')] = sessionId;
+
+        print(message)
+
     }
 
     private fun handleState(sessionId: UUID) {
@@ -67,7 +68,7 @@ object SessionManager {
         }
     }
 
-    private fun handleOffer(sessionId: UUID, message: String) {
+    public fun handleOffer(sessionId: UUID, message: String) {
         if (sessionState != WebRTCSessionState.Ready) {
             error("Session should be in Ready state to handle offer")
         }
@@ -79,9 +80,9 @@ object SessionManager {
     }
 
     private fun handleAnswer(sessionId: UUID, message: String) {
-        if (sessionState != WebRTCSessionState.Creating) {
+        /* if (sessionState != WebRTCSessionState.Creating) {
             error("Session should be in Creating state to handle answer")
-        }
+        }*/
         println("handling answer from $sessionId")
         val clientToSendAnswer = clients.filterKeys { it != sessionId }.values.first()
         clientToSendAnswer.send(message)
