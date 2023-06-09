@@ -5,6 +5,13 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.*
 
+data class sessionInfo(
+    var uuid: UUID? = null,
+    var session: DefaultWebSocketServerSession? = null
+){
+
+}
+
 /**
  * Originally written by Artem Bagritsevich.
  *
@@ -16,23 +23,24 @@ object SessionManager {
     private val mutex = Mutex()
 
     private val clients = mutableMapOf<UUID, DefaultWebSocketServerSession>()
+    private val client_database = mutableMapOf<String,UUID>()
 
     private var sessionState: WebRTCSessionState = WebRTCSessionState.Impossible
 
     fun onSessionStarted(sessionId: UUID, session: DefaultWebSocketServerSession) {
         sessionManagerScope.launch {
             mutex.withLock {
-                if (clients.size > 1) {
+                /*if (clients.size > 1) {
                     sessionManagerScope.launch(NonCancellable) {
                         session.send(Frame.Close()) // only two peers are supported
                     }
                     return@launch
-                }
+                }*/
+
                 clients[sessionId] = session
                 session.send("Added as a client: $sessionId")
-                if (clients.size > 1) {
-                    sessionState = WebRTCSessionState.Ready
-                }
+                sessionState = WebRTCSessionState.Ready
+
                 notifyAboutStateUpdate()
             }
         }
@@ -40,11 +48,17 @@ object SessionManager {
 
     fun onMessage(sessionId: UUID, message: String) {
         when {
+            message.startsWith(MessageType.NAME.toString(),true) -> handleName(sessionId,message)
             message.startsWith(MessageType.STATE.toString(), true) -> handleState(sessionId)
             message.startsWith(MessageType.OFFER.toString(), true) -> handleOffer(sessionId, message)
             message.startsWith(MessageType.ANSWER.toString(), true) -> handleAnswer(sessionId, message)
             message.startsWith(MessageType.ICE.toString(), true) -> handleIce(sessionId, message)
         }
+    }
+
+
+    private fun handleName(sessionId: UUID,message: String){
+        client_database[message] = sessionId;
     }
 
     private fun handleState(sessionId: UUID) {
@@ -102,7 +116,8 @@ object SessionManager {
         STATE,
         OFFER,
         ANSWER,
-        ICE
+        ICE,
+        NAME
     }
 
     private fun notifyAboutStateUpdate() {

@@ -3,21 +3,27 @@ import io.ktor.http.cio.websocket.*
 import io.ktor.request.receive
 import io.ktor.response.*
 import io.ktor.routing.*
+import io.ktor.server.netty.EngineMain
 import io.ktor.websocket.*
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import java.time.Duration
 import java.util.*
+
+
+
+
 
 /**
  * Originally written by Artem Bagritsevich.
  *
  * https://github.com/artem-bagritsevich/WebRTCKtorSignalingServerExample
  */
-fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
+fun main(args: Array<String>): Unit = EngineMain.main(args)
 
 @Suppress("unused") // Referenced in application.conf
 @JvmOverloads
 fun Application.module(testing: Boolean = false) {
+
 
     install(WebSockets) {
         pingPeriod = Duration.ofSeconds(15)
@@ -41,6 +47,8 @@ fun Application.module(testing: Boolean = false) {
             val sessionID = UUID.randomUUID()
             try {
                 SessionManager.onSessionStarted(sessionID, this)
+                //TODO: check if client present or not
+
 
                 for (frame in incoming) {
                     when (frame) {
