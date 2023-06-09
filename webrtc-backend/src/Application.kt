@@ -1,5 +1,6 @@
 import io.ktor.application.*
 import io.ktor.http.cio.websocket.*
+import io.ktor.request.receive
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.websocket.*
@@ -30,6 +31,12 @@ fun Application.module(testing: Boolean = false) {
         get("/") {
             call.respond("Hello from WebRTC signaling server")
         }
+
+        post("/"){
+            val headers = call.request.headers["Client-Name"]
+            val bytes = call.receive<ByteArray>()
+            call.respond(String(bytes))
+    }
         webSocket("/rtc") {
             val sessionID = UUID.randomUUID()
             try {
