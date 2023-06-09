@@ -16,9 +16,11 @@ import io.ktor.http.cio.websocket.Frame
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import io.ktor.client.features.logging.*
-import kotlin.test.*
+//import kotlin.test.*
 import io.ktor.server.testing.*
+import junit.framework.TestCase.assertEquals
 import module
+import org.junit.Test
 
 class ApplicationTest {
     @Test
