@@ -44,6 +44,7 @@ class SignalingClient {
   // opening web socket with signaling server
   private val ws = client.newWebSocket(request, SignalingWebSocketListener())
 
+
   // session flow to send information about the session state to the subscribers
   private val _sessionStateFlow = MutableStateFlow(WebRTCSessionState.Offline)
   val sessionStateFlow: StateFlow<WebRTCSessionState> = _sessionStateFlow
@@ -61,7 +62,10 @@ class SignalingClient {
     override fun onMessage(webSocket: WebSocket, text: String) {
       when {
         text.startsWith(SignalingCommand.STATE.toString(), true) ->
+        {
+          ws.send("NAME Chaman")
           handleStateMessage(text)
+        }
         text.startsWith(SignalingCommand.OFFER.toString(), true) ->
           handleSignalingCommand(SignalingCommand.OFFER, text)
         text.startsWith(SignalingCommand.ANSWER.toString(), true) ->

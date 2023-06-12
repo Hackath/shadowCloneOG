@@ -1,19 +1,17 @@
 import io.ktor.application.*
 import io.ktor.http.cio.websocket.*
-import io.ktor.request.receive
+import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import io.ktor.server.netty.EngineMain
+import io.ktor.server.netty.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import java.lang.Thread.sleep
 import java.time.Duration
 import java.util.*
-
-
-
 
 
 /**
@@ -63,12 +61,14 @@ fun Application.module(testing: Boolean = false) {
                 response = "{\"sucess\":false,\"message\":\"\"}"
             }
             else {
-                val session = SessionManager.clients[uuid]
-                session?.send(hopperMessage)
+                //val sessionId = SessionManager.clients[uuid]
+                SessionManager.handleOffer(uuid,hopperMessage)
                 println("Waiting for answer")
                 while (!receivedAnswer) {
                     println("Inside while")
-                    sleep(100z)
+                    withContext(Dispatchers.IO) {
+                        sleep(100)
+                    }
                 }
                 response = "{\"suceess\":true,\"message\":$answerSDP}"
                 print("\n recev answer")

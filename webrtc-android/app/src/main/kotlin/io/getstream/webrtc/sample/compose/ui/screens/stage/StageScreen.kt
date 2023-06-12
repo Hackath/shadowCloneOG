@@ -55,11 +55,12 @@ fun StageScreen(
         stringResource(id = R.string.session_ready)
       }
       WebRTCSessionState.Creating -> {
-        enabledCall = true
+        enabledCall = false
         stringResource(id = R.string.session_creating)
       }
       WebRTCSessionState.Active -> {
         enabledCall = false
+        //onJoinCall.invoke()
         stringResource(id = R.string.session_active)
       }
     }

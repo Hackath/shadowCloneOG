@@ -196,7 +196,7 @@ class WebRtcSessionManagerImpl(
     peerConnection.connection.addTrack(localAudioTrack)
     sessionManagerScope.launch {
       // sending local video track to show local video from start
-      _localVideoTrackFlow.emit(localVideoTrack)
+      //_localVideoTrackFlow.emit(localVideoTrack)
 
       if (offer != null) {
         sendAnswer()

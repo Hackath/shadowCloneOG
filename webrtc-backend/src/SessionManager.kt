@@ -72,17 +72,18 @@ object SessionManager {
         if (sessionState != WebRTCSessionState.Ready) {
             error("Session should be in Ready state to handle offer")
         }
-        sessionState = WebRTCSessionState.Creating
+        sessionState = WebRTCSessionState.Active
         println("handling offer from $sessionId")
         notifyAboutStateUpdate()
-        val clientToSendOffer = clients.filterKeys { it != sessionId }.values.first()
-        clientToSendOffer.send(message)
+        //val clientToSendOffer = clients.filterKeys { it != sessionId }.values.first()
+        //clientToSendOffer.send(message)
+        clients[sessionId]?.send(message)
     }
 
     private fun handleAnswer(sessionId: UUID, message: String) {
-        /* if (sessionState != WebRTCSessionState.Creating) {
+         if (sessionState != WebRTCSessionState.Creating) {
             error("Session should be in Creating state to handle answer")
-        }*/
+        }
         println("handling answer from $sessionId")
         val clientToSendAnswer = clients.filterKeys { it != sessionId }.values.first()
         clientToSendAnswer.send(message)
