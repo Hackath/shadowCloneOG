@@ -59,6 +59,7 @@ object SessionManager {
 
     private fun handleName(sessionId: UUID,message: String){
         client_database[message] = sessionId;
+        print(message)
     }
 
     private fun handleState(sessionId: UUID) {

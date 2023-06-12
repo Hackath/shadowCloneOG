@@ -17,6 +17,10 @@
 package io.getstream.webrtc.sample.compose
 
 import android.Manifest
+import android.content.Context
+import android.content.Intent
+import android.media.projection.MediaProjection
+import android.media.projection.MediaProjectionManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -38,10 +42,37 @@ import io.getstream.webrtc.sample.compose.webrtc.peer.StreamPeerConnectionFactor
 import io.getstream.webrtc.sample.compose.webrtc.sessions.LocalWebRtcSessionManager
 import io.getstream.webrtc.sample.compose.webrtc.sessions.WebRtcSessionManager
 import io.getstream.webrtc.sample.compose.webrtc.sessions.WebRtcSessionManagerImpl
+import org.webrtc.ScreenCapturerAndroid
+import org.webrtc.VideoCapturer
+
 
 class MainActivity : ComponentActivity() {
+
+  private val REQUEST_CODE = 1
+  private var mediaProjection: MediaProjection? = null
+  private var manager: MediaProjectionManager? = null
+
+  companion object {
+    var data1: Intent? = null
+  }
+
+  private fun requestScreenCapturePermission() {
+    manager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager?
+    val intent = manager!!.createScreenCaptureIntent()
+    startActivityForResult(intent, REQUEST_CODE)
+  }
+
+  override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    super.onActivityResult(requestCode, resultCode, data)
+    if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
+      mediaProjection = manager?.getMediaProjection(resultCode, data!!);
+    }
+  }
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+
+    requestScreenCapturePermission();
 
     requestPermissions(arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO), 0)
 

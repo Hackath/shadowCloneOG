@@ -17,16 +17,17 @@
 package io.getstream.webrtc.sample.compose.webrtc.sessions
 
 import android.content.Context
-import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
-import android.hardware.camera2.CameraMetadata
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
+import android.media.projection.MediaProjection
 import android.os.Build
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.core.content.getSystemService
 import io.getstream.log.taggedLogger
+import io.getstream.webrtc.sample.compose.MainActivity
+import io.getstream.webrtc.sample.compose.MainActivity.Companion.data1
 import io.getstream.webrtc.sample.compose.webrtc.SignalingClient
 import io.getstream.webrtc.sample.compose.webrtc.SignalingCommand
 import io.getstream.webrtc.sample.compose.webrtc.audio.AudioHandler
@@ -45,14 +46,20 @@ import org.webrtc.AudioTrack
 import org.webrtc.Camera2Capturer
 import org.webrtc.Camera2Enumerator
 import org.webrtc.CameraEnumerationAndroid
+import org.webrtc.ContextUtils.getApplicationContext
+import org.webrtc.EglBase
 import org.webrtc.IceCandidate
 import org.webrtc.MediaConstraints
 import org.webrtc.MediaStreamTrack
+import org.webrtc.PeerConnectionFactory
+import org.webrtc.ScreenCapturerAndroid
 import org.webrtc.SessionDescription
 import org.webrtc.SurfaceTextureHelper
 import org.webrtc.VideoCapturer
+import org.webrtc.VideoSource
 import org.webrtc.VideoTrack
 import java.util.UUID
+
 
 private const val ICE_SEPARATOR = '$'
 
@@ -75,6 +82,8 @@ class WebRtcSessionManagerImpl(
   // used to send remote video track to the sender
   private val _remoteVideoTrackFlow = MutableSharedFlow<VideoTrack>()
   override val remoteVideoTrackFlow: SharedFlow<VideoTrack> = _remoteVideoTrackFlow
+
+  val peerConnectionFactory1: PeerConnectionFactory? = null
 
   // declaring video constraints and setting OfferToReceiveVideo to true
   // this step is mandatory to create valid offer and answer
@@ -287,7 +296,7 @@ class WebRtcSessionManagerImpl(
   }
 
   private fun buildCameraCapturer(): VideoCapturer {
-    val manager = cameraManager ?: throw RuntimeException("CameraManager was not initialized!")
+    /*val manager = cameraManager ?: throw RuntimeException("CameraManager was not initialized!")
 
     val ids = manager.cameraIdList
     var foundCamera = false
@@ -308,8 +317,34 @@ class WebRtcSessionManagerImpl(
     }
 
     val camera2Capturer = Camera2Capturer(context, cameraId, null)
-    return camera2Capturer
+    return camera2Capturer*/
+
+    val surfaceTextureHelper = SurfaceTextureHelper.create("ScreenCaptureThread", EglBase.create().eglBaseContext)
+    var videoCapturer: VideoCapturer = ScreenCapturerAndroid(data1, object : MediaProjection.Callback() {
+      override fun onStop() {
+        // Handle screen capture stopped
+      }
+    })
+
+    // Initialize the video source
+
+    // Initialize the video source
+    val videoSource: VideoSource = peerConnectionFactory1!!.createVideoSource(false)
+    videoCapturer.initialize(
+      surfaceTextureHelper,
+      getApplicationContext(),
+      videoSource.getCapturerObserver()
+    )
+
+    // Start capturing frames
+
+    // Start capturing frames
+    videoCapturer.startCapture(1920, 1080, 30)
+
+    return videoCapturer
   }
+
+
 
   private fun buildAudioConstraints(): MediaConstraints {
     val mediaConstraints = MediaConstraints()

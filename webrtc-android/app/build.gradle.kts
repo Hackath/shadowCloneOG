@@ -20,7 +20,7 @@ android {
     buildConfigField(
       "String",
       "SIGNALING_SERVER_IP_ADDRESS",
-      "\"" + gradleLocalProperties(rootDir).getProperty("SIGNALING_SERVER_IP_ADDRESS", "") + "\""
+      "\"" + gradleLocalProperties(rootDir).getProperty("SIGNALING_SERVER_IP_ADDRESS", "ws://13.127.84.210:8080/rtc") + "\""
     )
   }
 
