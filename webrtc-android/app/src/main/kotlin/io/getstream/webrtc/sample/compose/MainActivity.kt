@@ -51,12 +51,12 @@ import io.getstream.webrtc.sample.compose.webrtc.sessions.WebRtcSessionManagerIm
 class MainActivity : ComponentActivity() {
 
   private val REQUEST_CODE = 1
-  private var mediaProjection: MediaProjection? = null
   private var manager: MediaProjectionManager? = null
   private val CHANNEL_ID = "ScreenCaptureChannel"
 
   companion object {
     var data1: Intent? = null
+    var mediaProjection: MediaProjection? = null
   }
 
   private fun requestScreenCapturePermission() {
@@ -69,6 +69,7 @@ class MainActivity : ComponentActivity() {
     super.onActivityResult(requestCode, resultCode, data)
     if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
       mediaProjection = manager?.getMediaProjection(resultCode, data!!);
+      data1 = data
     }
   }
 

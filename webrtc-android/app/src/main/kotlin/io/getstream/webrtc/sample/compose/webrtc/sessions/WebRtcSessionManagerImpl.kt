@@ -24,12 +24,14 @@ import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.media.projection.MediaProjection
 import android.os.Build
+import android.util.Log
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.core.content.getSystemService
 import io.getstream.log.taggedLogger
 import io.getstream.webrtc.sample.compose.MainActivity
 import io.getstream.webrtc.sample.compose.MainActivity.Companion.data1
+import io.getstream.webrtc.sample.compose.MainActivity.Companion.mediaProjection
 import io.getstream.webrtc.sample.compose.webrtc.SignalingClient
 import io.getstream.webrtc.sample.compose.webrtc.SignalingCommand
 import io.getstream.webrtc.sample.compose.webrtc.audio.AudioHandler
@@ -298,7 +300,7 @@ class WebRtcSessionManagerImpl(
   }
 
   private fun buildCameraCapturer(): VideoCapturer {
-    val manager = cameraManager ?: throw RuntimeException("CameraManager was not initialized!")
+    /*val manager = cameraManager ?: throw RuntimeException("CameraManager was not initialized!")
 
     val ids = manager.cameraIdList
     var foundCamera = false
@@ -319,31 +321,35 @@ class WebRtcSessionManagerImpl(
     }
 
     val camera2Capturer = Camera2Capturer(context, cameraId, null)
-    return camera2Capturer
+    return camera2Capturer*/
 
-    /*val surfaceTextureHelper = SurfaceTextureHelper.create("ScreenCaptureThread", EglBase.create().eglBaseContext)
+    //val surfaceTextureHelper = SurfaceTextureHelper.create("ScreenCaptureThread", EglBase.create().eglBaseContext)
     var videoCapturer: VideoCapturer = ScreenCapturerAndroid(data1, object : MediaProjection.Callback() {
       override fun onStop() {
-        // Handle screen capture stopped
+        videoCapturer.stopCapture();
+        videoCapturer.dispose();
+        mediaProjection?.stop()
       }
     })
 
     // Initialize the video source
 
     // Initialize the video source
-    val videoSource: VideoSource = peerConnectionFactory1!!.createVideoSource(false)
+    val videoSource: VideoSource = peerConnectionFactory.makeVideoSource(true)
     videoCapturer.initialize(
       surfaceTextureHelper,
       getApplicationContext(),
       videoSource.getCapturerObserver()
     )
 
-    // Start capturing frames
+    if (videoCapturer == null) {
+      Log.d("Rakesh", "Video Capturer is null")
+    }
 
     // Start capturing frames
-    videoCapturer.startCapture(1920, 1080, 30)
+    //videoCapturer.startCapture(1920, 1080, 30)
 
-    return videoCapturer*/
+    return videoCapturer
   }
 
 
