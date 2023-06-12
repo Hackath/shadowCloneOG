@@ -17,7 +17,9 @@
 package io.getstream.webrtc.sample.compose.webrtc.sessions
 
 import android.content.Context
+import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
+import android.hardware.camera2.CameraMetadata
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.media.projection.MediaProjection
@@ -296,7 +298,7 @@ class WebRtcSessionManagerImpl(
   }
 
   private fun buildCameraCapturer(): VideoCapturer {
-    /*val manager = cameraManager ?: throw RuntimeException("CameraManager was not initialized!")
+    val manager = cameraManager ?: throw RuntimeException("CameraManager was not initialized!")
 
     val ids = manager.cameraIdList
     var foundCamera = false
@@ -317,9 +319,9 @@ class WebRtcSessionManagerImpl(
     }
 
     val camera2Capturer = Camera2Capturer(context, cameraId, null)
-    return camera2Capturer*/
+    return camera2Capturer
 
-    val surfaceTextureHelper = SurfaceTextureHelper.create("ScreenCaptureThread", EglBase.create().eglBaseContext)
+    /*val surfaceTextureHelper = SurfaceTextureHelper.create("ScreenCaptureThread", EglBase.create().eglBaseContext)
     var videoCapturer: VideoCapturer = ScreenCapturerAndroid(data1, object : MediaProjection.Callback() {
       override fun onStop() {
         // Handle screen capture stopped
@@ -341,7 +343,7 @@ class WebRtcSessionManagerImpl(
     // Start capturing frames
     videoCapturer.startCapture(1920, 1080, 30)
 
-    return videoCapturer
+    return videoCapturer*/
   }
 
 

@@ -17,13 +17,17 @@
 package io.getstream.webrtc.sample.compose
 
 import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
@@ -42,8 +46,6 @@ import io.getstream.webrtc.sample.compose.webrtc.peer.StreamPeerConnectionFactor
 import io.getstream.webrtc.sample.compose.webrtc.sessions.LocalWebRtcSessionManager
 import io.getstream.webrtc.sample.compose.webrtc.sessions.WebRtcSessionManager
 import io.getstream.webrtc.sample.compose.webrtc.sessions.WebRtcSessionManagerImpl
-import org.webrtc.ScreenCapturerAndroid
-import org.webrtc.VideoCapturer
 
 
 class MainActivity : ComponentActivity() {
@@ -51,6 +53,7 @@ class MainActivity : ComponentActivity() {
   private val REQUEST_CODE = 1
   private var mediaProjection: MediaProjection? = null
   private var manager: MediaProjectionManager? = null
+  private val CHANNEL_ID = "ScreenCaptureChannel"
 
   companion object {
     var data1: Intent? = null
@@ -69,8 +72,26 @@ class MainActivity : ComponentActivity() {
     }
   }
 
+  private fun createNotificationChannel() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      val channel = NotificationChannel(
+        CHANNEL_ID,
+        "Screen Capture Channel",
+        NotificationManager.IMPORTANCE_DEFAULT
+      )
+      val manager = getSystemService(
+        NotificationManager::class.java
+      )
+      manager.createNotificationChannel(channel)
+    }
+  }
+
+  @RequiresApi(Build.VERSION_CODES.O)
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    createNotificationChannel();
+
+    startForegroundService(Intent(this, ScreenCaptureService::class.java))
 
     requestScreenCapturePermission();
 
