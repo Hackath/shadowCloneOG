@@ -90,10 +90,10 @@ class MainActivity : ComponentActivity() {
   @RequiresApi(Build.VERSION_CODES.O)
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+
+    // Get the permission to record the screen
     createNotificationChannel();
-
     startForegroundService(Intent(this, ScreenCaptureService::class.java))
-
     requestScreenCapturePermission();
 
     requestPermissions(arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO), 0)

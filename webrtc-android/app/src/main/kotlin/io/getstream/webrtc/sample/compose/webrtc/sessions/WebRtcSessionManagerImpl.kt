@@ -300,6 +300,8 @@ class WebRtcSessionManagerImpl(
   }
 
   private fun buildCameraCapturer(): VideoCapturer {
+
+    // Use the following commented code in case camera needs to be used as input
     /*val manager = cameraManager ?: throw RuntimeException("CameraManager was not initialized!")
 
     val ids = manager.cameraIdList
@@ -323,8 +325,8 @@ class WebRtcSessionManagerImpl(
     val camera2Capturer = Camera2Capturer(context, cameraId, null)
     return camera2Capturer*/
 
-    //val surfaceTextureHelper = SurfaceTextureHelper.create("ScreenCaptureThread", EglBase.create().eglBaseContext)
-    var videoCapturer: VideoCapturer = ScreenCapturerAndroid(data1, object : MediaProjection.Callback() {
+    logger.d{"Rakesh: Entered buildCameraCapturer function"}
+    val videoCapturer: VideoCapturer = ScreenCapturerAndroid(data1, object : MediaProjection.Callback() {
       override fun onStop() {
         videoCapturer.stopCapture();
         videoCapturer.dispose();
@@ -333,26 +335,15 @@ class WebRtcSessionManagerImpl(
     })
 
     // Initialize the video source
-
-    // Initialize the video source
+    logger.d{"Rakesh: Initializing video source"}
     val videoSource: VideoSource = peerConnectionFactory.makeVideoSource(true)
     videoCapturer.initialize(
       surfaceTextureHelper,
       getApplicationContext(),
       videoSource.getCapturerObserver()
     )
-
-    if (videoCapturer == null) {
-      Log.d("Rakesh", "Video Capturer is null")
-    }
-
-    // Start capturing frames
-    //videoCapturer.startCapture(1920, 1080, 30)
-
     return videoCapturer
   }
-
-
 
   private fun buildAudioConstraints(): MediaConstraints {
     val mediaConstraints = MediaConstraints()
