@@ -59,34 +59,6 @@ class MainActivity : ComponentActivity() {
     var mediaProjection: MediaProjection? = null
   }
 
-  private fun requestScreenCapturePermission() {
-    manager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager?
-    val intent = manager!!.createScreenCaptureIntent()
-    startActivityForResult(intent, REQUEST_CODE)
-  }
-
-  override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-    super.onActivityResult(requestCode, resultCode, data)
-    if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
-      mediaProjection = manager?.getMediaProjection(resultCode, data!!);
-      data1 = data
-    }
-  }
-
-  private fun createNotificationChannel() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      val channel = NotificationChannel(
-        CHANNEL_ID,
-        "Screen Capture Channel",
-        NotificationManager.IMPORTANCE_DEFAULT
-      )
-      val manager = getSystemService(
-        NotificationManager::class.java
-      )
-      manager.createNotificationChannel(channel)
-    }
-  }
-
   @RequiresApi(Build.VERSION_CODES.O)
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -123,6 +95,34 @@ class MainActivity : ComponentActivity() {
           }
         }
       }
+    }
+  }
+
+  private fun requestScreenCapturePermission() {
+    manager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager?
+    val intent = manager!!.createScreenCaptureIntent()
+    startActivityForResult(intent, REQUEST_CODE)
+  }
+
+  override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    super.onActivityResult(requestCode, resultCode, data)
+    if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
+      mediaProjection = manager?.getMediaProjection(resultCode, data!!);
+      data1 = data
+    }
+  }
+
+  private fun createNotificationChannel() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      val channel = NotificationChannel(
+        CHANNEL_ID,
+        "Screen Capture Channel",
+        NotificationManager.IMPORTANCE_DEFAULT
+      )
+      val manager = getSystemService(
+        NotificationManager::class.java
+      )
+      manager.createNotificationChannel(channel)
     }
   }
 }
