@@ -54,14 +54,17 @@ fun Application.module(testing: Boolean = false) {
             val clientName = call.request.headers["Client-Name"]
             val bytes = call.receive<ByteArray>()
             var hopperMessage = String(bytes)
+            println("Recieved offer")
+            println(hopperMessage)
             hopperMessage = "OFFER $hopperMessage"
             val uuid = clientName?.let { it1 -> SessionManager.findClient(it1) }
             var response: String? = null;
             if(uuid == null){
-                response = "{\"sucess\":false,\"message\":\"\"}"
+                response = "{\"sucess\":0,\"message\":\"\"}"
             }
             else {
                 //val sessionId = SessionManager.clients[uuid]
+
                 SessionManager.handleOffer(uuid,hopperMessage)
                 println("Waiting for answer")
                 while (!receivedAnswer) {
@@ -70,10 +73,12 @@ fun Application.module(testing: Boolean = false) {
                         sleep(100)
                     }
                 }
-                response = "{\"suceess\":true,\"message\":$answerSDP}"
-                print("\n recev answer")
+                response = "{\"suceess\":1,\"message\":$answerSDP,\"}"
+                println(" recev answer")
             }
-            call.respond(response)
+            println("Sending response")
+            println(response)
+            answerSDP?.let { it1 -> call.respondText(it1) }
     }
         webSocket("/rtc") {
             val sessionID = UUID.randomUUID()
@@ -88,8 +93,9 @@ fun Application.module(testing: Boolean = false) {
                             var message = frame.readText();
                             SessionManager.onMessage(sessionID, frame.readText())
                                 if (message.startsWith(MessageType.ANSWER.toString(), true)) {
-                                    println(message)
+                                    //println(message)
                                     answerSDP = message.substringAfter(' ')
+                                    //println(answerSDP)
                                     receivedAnswer = true
                                 }
                         }

@@ -24,6 +24,8 @@ object SessionManager {
 
     public val clients = mutableMapOf<UUID, DefaultWebSocketServerSession>()
     public val client_database = mutableMapOf<String,UUID>()
+    public var ice_candidates:String? = "";
+    public var number_of_ice = 0;
 
     private var sessionState: WebRTCSessionState = WebRTCSessionState.Impossible
 
@@ -93,8 +95,12 @@ object SessionManager {
 
     private fun handleIce(sessionId: UUID, message: String) {
         println("handling ice from $sessionId")
-        val clientToSendIce = clients.filterKeys { it != sessionId }.values.first()
-        clientToSendIce.send(message)
+        println(message)
+        ice_candidates + "a=candidate:" + message.substringAfter(":")
+        number_of_ice += 1;
+        println("ICE candidateas: " + ice_candidates)
+        //val clientToSendIce = clients.filterKeys { it != sessionId }.values.first()
+        //clientToSendIce.send(message)
     }
 
     fun onSessionClose(sessionId: UUID) {

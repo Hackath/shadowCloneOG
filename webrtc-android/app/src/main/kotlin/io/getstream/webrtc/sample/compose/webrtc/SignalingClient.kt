@@ -63,7 +63,7 @@ class SignalingClient {
       when {
         text.startsWith(SignalingCommand.STATE.toString(), true) ->
         {
-          ws.send("NAME Chaman")
+          ws.send("NAME Rakesh")
           handleStateMessage(text)
         }
         text.startsWith(SignalingCommand.OFFER.toString(), true) ->
