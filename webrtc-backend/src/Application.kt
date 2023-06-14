@@ -12,6 +12,7 @@ import kotlinx.coroutines.withContext
 import java.lang.Thread.sleep
 import java.time.Duration
 import java.util.*
+import kotlinx.coroutines.sync.withLock
 
 
 /**
@@ -33,7 +34,11 @@ enum class MessageType {
 fun Application.module(testing: Boolean = false) {
     var receivedAnswer = false;
     var answerSDP:String? = null;
-    val mutex = Mutex()
+    var iceCandidates = false;
+    var numberOfIceCandidates = 0 ;
+    val answerMutex = Mutex()
+    val iceMutex = Mutex()
+
 
 
 
@@ -61,21 +66,34 @@ fun Application.module(testing: Boolean = false) {
             var response: String? = null;
             if(uuid == null){
                 response = "{\"sucess\":0,\"message\":\"\"}"
+                println("here")
             }
             else {
                 //val sessionId = SessionManager.clients[uuid]
 
-                SessionManager.handleOffer(uuid,hopperMessage)
+                SessionManager.handleOffer(uuid, hopperMessage)
                 println("Waiting for answer")
-                while (!receivedAnswer) {
+                var cont = true;
+                while (cont) {
                     println("Inside while")
                     withContext(Dispatchers.IO) {
                         sleep(100)
                     }
+                    answerMutex.withLock {
+                        iceMutex.withLock {
+                            cont = !(receivedAnswer && iceCandidates)
+                            println("Cont:")
+                            println(cont)
+                        }
+                    }
+
                 }
+
+
                 response = "{\"suceess\":1,\"message\":$answerSDP,\"}"
                 println(" recev answer")
             }
+
             println("Sending response")
             println(response)
             answerSDP?.let { it1 -> call.respondText(it1) }
@@ -94,10 +112,24 @@ fun Application.module(testing: Boolean = false) {
                             SessionManager.onMessage(sessionID, frame.readText())
                                 if (message.startsWith(MessageType.ANSWER.toString(), true)) {
                                     //println(message)
-                                    answerSDP = message.substringAfter(' ')
-                                    //println(answerSDP)
-                                    receivedAnswer = true
+                                    answerMutex.withLock {
+                                        answerSDP = message.substringAfter(' ')
+                                        //println(answerSDP)
+                                        receivedAnswer = true
+                                    }
                                 }
+                            if (message.startsWith(MessageType.ICE.toString(), true)) {
+                                numberOfIceCandidates+=1
+                                iceMutex.withLock {
+                                    answerMutex.withLock {
+                                        answerSDP = answerSDP + "a=candidate:" + message.substringAfter(":") + "\n"
+                                    }
+                                    if(numberOfIceCandidates >= 2) {
+                                        iceCandidates = true
+                                    }
+                                }
+                            }
+
                         }
 
                         else -> Unit
