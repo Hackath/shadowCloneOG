@@ -17,9 +17,17 @@
 package io.getstream.webrtc.sample.compose
 
 import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
+import android.content.Intent
+import android.media.projection.MediaProjection
+import android.media.projection.MediaProjectionManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
@@ -39,9 +47,26 @@ import io.getstream.webrtc.sample.compose.webrtc.sessions.LocalWebRtcSessionMana
 import io.getstream.webrtc.sample.compose.webrtc.sessions.WebRtcSessionManager
 import io.getstream.webrtc.sample.compose.webrtc.sessions.WebRtcSessionManagerImpl
 
+
 class MainActivity : ComponentActivity() {
+
+  private val REQUEST_CODE = 1
+  private var manager: MediaProjectionManager? = null
+  private val CHANNEL_ID = "ScreenCaptureChannel"
+
+  companion object {
+    var data1: Intent? = null
+    var mediaProjection: MediaProjection? = null
+  }
+
+  @RequiresApi(Build.VERSION_CODES.O)
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+
+    // Get the permission to record the screen
+    createNotificationChannel();
+    startForegroundService(Intent(this, ScreenCaptureService::class.java))
+    requestScreenCapturePermission();
 
     requestPermissions(arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO), 0)
 
@@ -70,6 +95,34 @@ class MainActivity : ComponentActivity() {
           }
         }
       }
+    }
+  }
+
+  private fun requestScreenCapturePermission() {
+    manager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager?
+    val intent = manager!!.createScreenCaptureIntent()
+    startActivityForResult(intent, REQUEST_CODE)
+  }
+
+  override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    super.onActivityResult(requestCode, resultCode, data)
+    if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
+      mediaProjection = manager?.getMediaProjection(resultCode, data!!);
+      data1 = data
+    }
+  }
+
+  private fun createNotificationChannel() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      val channel = NotificationChannel(
+        CHANNEL_ID,
+        "Screen Capture Channel",
+        NotificationManager.IMPORTANCE_DEFAULT
+      )
+      val manager = getSystemService(
+        NotificationManager::class.java
+      )
+      manager.createNotificationChannel(channel)
     }
   }
 }
