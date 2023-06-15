@@ -15,7 +15,7 @@
      limitations under the License.
 -->
 <resources>
-  <string name="app_name">webrtc-sample-compose</string>
+  <string name="app_name">Shadow Clone</string>
 
   <string name="session_offline">Offline</string>
   <string name="session_impossible">Second peer is missing</string>
