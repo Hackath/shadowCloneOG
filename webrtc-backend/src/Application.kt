@@ -38,7 +38,7 @@ fun Application.module(testing: Boolean = false) {
     var numberOfIceCandidates = 0 ;
     val answerMutex = Mutex()
     val iceMutex = Mutex()
-    int count= 0;
+    int client_count= 0;
     
 
 
@@ -102,6 +102,11 @@ fun Application.module(testing: Boolean = false) {
     }
         webSocket("/rtc") {
             val sessionID = UUID.randomUUID()
+            val client_name=listof("Chaman","Rakesh","Rueju","Vishnu")
+            if(client_count<=3):
+             SessionManager.clients_database[client_name[client_count]] = sessionID
+            else:
+            SessionManager.clients_database["Default"] = sessionID
             //Count 
             //First phone connected uska client name Rakesh
             //Second phone connected uska client name Vishnu
